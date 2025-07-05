@@ -13,11 +13,13 @@ enum class Color : uint8_t { RED, BLACK };
 enum class Direction : uint8_t { LEFT, RIGHT };
 //---------------------------------------------------------------------------
 template <typename KeyT, typename ValueT> struct RedBlackNode {
-  RedBlackNode<KeyT, ValueT> *children[2];
-  RedBlackNode<KeyT, ValueT> *parent;
+  RedBlackNode<KeyT, ValueT> *children[2] = {nullptr, nullptr};
+  RedBlackNode<KeyT, ValueT> *parent = nullptr;
   KeyT key;
   ValueT value;
-  Color color;
+  Color color = Color::RED;
+  //---------------------------------------------------------------------------
+  RedBlackNode(KeyT key, ValueT value) : key(key), value(value) {}
 };
 //---------------------------------------------------------------------------
 template <typename KeyT, typename ValueT> class RedBlackTree {
@@ -40,7 +42,7 @@ public:
       root = node;
     } else {
       bool left = false;
-      auto &parent = search(key, left);
+      auto parent = search(key, left);
       assert(parent != nullptr);
       //---------------------------------------------------------------------------
       node->parent = parent;
@@ -56,13 +58,13 @@ public:
   //---------------------------------------------------------------------------
   ValueT lookup(KeyT key) const {
     bool left = false;
-    auto &parent = search(key, left);
+    auto parent = search(key, left);
     //---------------------------------------------------------------------------
     return parent->children[static_cast<uint32_t>(left)]->value;
   }
 
 private:
-  RedBlackNode<KeyT, ValueT> *search(KeyT key, bool &left) {
+  RedBlackNode<KeyT, ValueT> *search(KeyT key, bool &left) const {
     assert(root != nullptr);
     //---------------------------------------------------------------------------
     RedBlackNode<KeyT, ValueT> *pred = nullptr;
@@ -77,13 +79,13 @@ private:
         return cur;
       }
       if (cur->key < key) {
-        if (cur->left != nullptr)
-          stack.push_back(cur->left);
+        if (cur->children[0] != nullptr)
+          stack.push_back(cur->children[0]);
         else
           left = true;
       } else {
-        if (cur->right != nullptr)
-          stack.push_back(cur->right);
+        if (cur->children[1] != nullptr)
+          stack.push_back(cur->children[1]);
         else
           left = false;
       }
@@ -128,7 +130,7 @@ private:
             // Reassign
             auto temp = cur;
             cur = parent;
-            parent = cur;
+            parent = temp;
           }
           // Case 6
           // Rotate
@@ -164,7 +166,7 @@ private:
     void *node_ptr = buffer.data() + aligned_offset;
     //---------------------------------------------------------------------------
     ++size;
-    return new (node_ptr) RedBlackNode({}, nullptr, key, value, Color::RED);
+    return new (node_ptr) RedBlackNode<KeyT, ValueT>(key, value);
   }
 
   span<byte> buffer;
