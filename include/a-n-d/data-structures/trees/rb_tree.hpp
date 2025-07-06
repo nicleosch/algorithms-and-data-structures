@@ -77,6 +77,8 @@ public:
     //---------------------------------------------------------------------------
     return nullptr;
   }
+  //---------------------------------------------------------------------------
+  void print() { print(root); }
 
 private:
   RedBlackNode<KeyT, ValueT> *findParent(KeyT key, bool &left) const {
@@ -178,6 +180,29 @@ private:
     //---------------------------------------------------------------------------
     ++size;
     return new (node_ptr) RedBlackNode<KeyT, ValueT>(key, value);
+  }
+  //---------------------------------------------------------------------------
+  void print(const RedBlackNode<KeyT, ValueT> *node,
+             const std::string &prefix = "", bool isLeft = true) {
+    if (node == nullptr)
+      return;
+    //---------------------------------------------------------------------------
+    std::cout << prefix << std::endl;
+    if (node->parent == nullptr) {
+      std::cout << "Root: ";
+    } else {
+      std::cout << prefix;
+      if (isLeft)
+        std::cout << "├── L: ";
+      else
+        std::cout << "└── R: ";
+    }
+    std::cout << "Key: " << node->key
+              << " Color: " << (node->color == Color::RED ? "RED" : "BLACK")
+              << std::endl;
+    //---------------------------------------------------------------------------
+    print(node->children[0], prefix + (isLeft ? "│   " : "    "), true);
+    print(node->children[1], prefix + (isLeft ? "│   " : "    "), false);
   }
 
   span<byte> buffer;
