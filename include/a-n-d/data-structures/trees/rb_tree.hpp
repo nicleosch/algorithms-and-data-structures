@@ -24,7 +24,7 @@ template <typename KeyT, typename ValueT> struct RedBlackNode {
 //---------------------------------------------------------------------------
 template <typename KeyT, typename ValueT> class RedBlackTree {
 public:
-  static const uint64_t kNodeAlignment = alignof(RedBlackNode<KeyT, ValueT>);
+  static const uint64_t kNodeAlignment = sizeof(RedBlackNode<KeyT, ValueT>);
   //---------------------------------------------------------------------------
   /// Default Constructor.
   RedBlackTree() = delete;
@@ -42,7 +42,7 @@ public:
       root = node;
     } else {
       bool left = false;
-      auto parent = search(key, left);
+      auto parent = findParent(key, left);
       assert(parent != nullptr);
       //---------------------------------------------------------------------------
       node->parent = parent;
@@ -56,15 +56,30 @@ public:
     return node;
   }
   //---------------------------------------------------------------------------
-  ValueT lookup(KeyT key) const {
-    bool left = false;
-    auto parent = search(key, left);
+  RedBlackNode<KeyT, ValueT> *lookup(KeyT key) const {
+    vector<RedBlackNode<KeyT, ValueT> *> stack;
+    stack.push_back(root);
     //---------------------------------------------------------------------------
-    return parent->children[static_cast<uint32_t>(left)]->value;
+    while (stack.size() > 0) {
+      auto cur = stack.back();
+      stack.pop_back();
+      if (cur->key == key) {
+        return cur;
+      }
+      if (cur->key < key) {
+        if (cur->children[1] != nullptr)
+          stack.push_back(cur->children[1]);
+      } else {
+        if (cur->children[0] != nullptr)
+          stack.push_back(cur->children[0]);
+      }
+    }
+    //---------------------------------------------------------------------------
+    return nullptr;
   }
 
 private:
-  RedBlackNode<KeyT, ValueT> *search(KeyT key, bool &left) const {
+  RedBlackNode<KeyT, ValueT> *findParent(KeyT key, bool &left) const {
     assert(root != nullptr);
     //---------------------------------------------------------------------------
     RedBlackNode<KeyT, ValueT> *pred = nullptr;
@@ -74,18 +89,14 @@ private:
     while (stack.size() > 0) {
       auto cur = stack.back();
       stack.pop_back();
-      if (cur->key == key) {
-        left = true;
-        return cur;
-      }
-      if (cur->key < key) {
-        if (cur->children[0] != nullptr)
-          stack.push_back(cur->children[0]);
+      if (cur->key <= key) {
+        if (cur->children[1] != nullptr)
+          stack.push_back(cur->children[1]);
         else
           left = true;
       } else {
-        if (cur->children[1] != nullptr)
-          stack.push_back(cur->children[1]);
+        if (cur->children[0] != nullptr)
+          stack.push_back(cur->children[0]);
         else
           left = false;
       }
@@ -96,7 +107,7 @@ private:
   }
   //---------------------------------------------------------------------------
   void rotate(RedBlackNode<KeyT, ValueT> *cur) {
-    while (true) {
+    while (cur != nullptr) {
       //---------------------------------------------------------------------------
       assert(cur->color == Color::RED);
       //---------------------------------------------------------------------------
@@ -104,19 +115,19 @@ private:
         return;
       //---------------------------------------------------------------------------
       assert(cur->parent != nullptr);
-      auto &parent = cur->parent;
+      auto parent = cur->parent;
       if (parent == root) {
         root->color = Color::BLACK;
         return;
       }
       //---------------------------------------------------------------------------
       assert(cur->parent->parent != nullptr);
-      auto &grandparent = parent->parent;
+      auto grandparent = parent->parent;
       assert(grandparent->color == Color::BLACK);
       if (parent->color == Color::RED) {
         auto dir = static_cast<uint8_t>(getDir(parent));
-        auto &aunt = grandparent->children[1 - dir];
-        if (aunt->color == Color::RED) { // Case 2
+        auto aunt = grandparent->children[1 - dir];
+        if (aunt != nullptr && aunt->color == Color::RED) { // Case 2
           parent->color = Color::BLACK;
           aunt->color = Color::BLACK;
           grandparent->color = Color::RED;
@@ -138,6 +149,8 @@ private:
           parent->children[1 - dir] = grandparent;
           parent->parent = grandparent->parent;
           grandparent->parent = parent;
+          if (root->parent != nullptr)
+            root = root->parent;
           // Color
           parent->color = Color::BLACK;
           grandparent->color = Color::RED;
@@ -158,12 +171,10 @@ private:
   //---------------------------------------------------------------------------
   RedBlackNode<KeyT, ValueT> *allocateNode(KeyT key, ValueT value) {
     uint64_t offset = size * kNodeAlignment;
-    uint64_t aligned_offset =
-        (offset + kNodeAlignment - 1) & ~(kNodeAlignment - 1);
     //---------------------------------------------------------------------------
-    if (aligned_offset + kNodeAlignment > buffer.size())
+    if (offset + kNodeAlignment > buffer.size())
       throw std::bad_alloc();
-    void *node_ptr = buffer.data() + aligned_offset;
+    void *node_ptr = buffer.data() + offset;
     //---------------------------------------------------------------------------
     ++size;
     return new (node_ptr) RedBlackNode<KeyT, ValueT>(key, value);

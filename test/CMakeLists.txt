@@ -3,7 +3,7 @@
 ################
 
 
-FILE (GLOB_RECURSE PROJECT_TESTS *.cc *.h)
+FILE (GLOB_RECURSE PROJECT_TESTS *.cc *.cpp)
 
 
 # EXECUTABLE
