@@ -140,6 +140,7 @@ private:
             cur->children[dir] = parent;
             cur->parent = grandparent;
             parent->parent = cur;
+            grandparent->children[dir] = cur;
             // Reassign
             auto temp = cur;
             cur = parent;
@@ -150,6 +151,11 @@ private:
           grandparent->children[dir] = parent->children[1 - dir];
           parent->children[1 - dir] = grandparent;
           parent->parent = grandparent->parent;
+          if (parent->parent != nullptr) {
+            // Make grandgrandparent aware of changes
+            grandparent->parent
+                ->children[static_cast<uint8_t>(getDir(grandparent))] = parent;
+          }
           grandparent->parent = parent;
           if (root->parent != nullptr)
             root = root->parent;
