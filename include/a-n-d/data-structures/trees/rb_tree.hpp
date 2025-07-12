@@ -35,6 +35,10 @@ public:
   /// Destructor.
   ~RedBlackTree() = default;
   //---------------------------------------------------------------------------
+  /// @brief Inserts a node into the tree.
+  /// @param key The key to be inserted.
+  /// @param value The value to be inserted.
+  /// @returns A pointer to the inserted node.
   RedBlackNode<KeyT, ValueT> *insert(KeyT key, ValueT value) {
     RedBlackNode<KeyT, ValueT> *node = allocateNode(key, value);
     //---------------------------------------------------------------------------
@@ -56,6 +60,9 @@ public:
     return node;
   }
   //---------------------------------------------------------------------------
+  /// @brief Finds a node in the tree, if it exists.
+  /// @param key The key to be looked up.
+  /// @returns A pointer to the found node.
   RedBlackNode<KeyT, ValueT> *lookup(KeyT key) const {
     vector<RedBlackNode<KeyT, ValueT> *> stack;
     stack.push_back(root);
@@ -78,6 +85,7 @@ public:
     return nullptr;
   }
   //---------------------------------------------------------------------------
+  /// @brief Prints a visual representation of the tree into the console.
   void print() { print(root); }
 
 private:
