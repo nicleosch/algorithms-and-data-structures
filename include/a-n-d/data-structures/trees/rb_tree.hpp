@@ -111,9 +111,7 @@ private:
   void rotate(RedBlackNode<KeyT, ValueT> *cur) {
     while (cur != nullptr) {
       //---------------------------------------------------------------------------
-      assert(cur->color == Color::RED);
-      //---------------------------------------------------------------------------
-      if (cur == root)
+      if (cur == root || cur->color == Color::BLACK)
         return;
       //---------------------------------------------------------------------------
       assert(cur->parent != nullptr);
