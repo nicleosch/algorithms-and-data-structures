@@ -18,6 +18,7 @@ TEST(RBTree, Insert1Get1) {
   auto found = rb.lookup(1);
   ASSERT_NE(found, nullptr);
   ASSERT_EQ(found->value, 2);
+  ASSERT_TRUE(rb.validate());
 }
 //---------------------------------------------------------------------------
 TEST(RBTree, ConsecutiveInsert10) {
@@ -28,6 +29,7 @@ TEST(RBTree, ConsecutiveInsert10) {
   for (u32 i = 0; i < cinsert; ++i) {
     auto node = rb.insert(i, i * 42);
     ASSERT_NE(node, nullptr);
+    ASSERT_TRUE(rb.validate());
   }
   for (u32 i = 0; i < cinsert; ++i) {
     auto found = rb.lookup(i);
@@ -52,6 +54,7 @@ TEST(RBTree, RandomInsert10) {
     u32 key = keys[i];
     auto node = rb.insert(key, key * 42);
     ASSERT_NE(node, nullptr);
+    ASSERT_TRUE(rb.validate());
   }
   for (u32 i = 0; i < cinsert; ++i) {
     u32 key = keys[i];
@@ -79,8 +82,8 @@ TEST(RBTree, DuplicateInsert10) {
   for (u32 i = 0; i < cinsert; ++i) {
     u32 key = keys[i];
     auto node = rb.insert(key, key * 42);
-    rb.print();
     ASSERT_NE(node, nullptr);
+    ASSERT_TRUE(rb.validate());
   }
   for (u32 i = 0; i < cinsert; ++i) {
     u32 key = keys[i];

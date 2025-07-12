@@ -4,6 +4,7 @@
 #include <vector>
 //---------------------------------------------------------------------------
 using std::byte;
+using std::pair;
 using std::span;
 using std::vector;
 //---------------------------------------------------------------------------
@@ -87,6 +88,48 @@ public:
   //---------------------------------------------------------------------------
   /// @brief Prints a visual representation of the tree into the console.
   void print() { print(root); }
+  //---------------------------------------------------------------------------
+  /// @brief Validates the tree against the Red-Black-Tree properties.
+  /// 1. Every node is either red or black.
+  /// 2. All null nodes are considered black.
+  /// 3. A red node does not have a red child.
+  /// 4. Every path from a given node to any of its leaf nodes goes through the
+  /// same number of black nodes.
+  bool validate() {
+    vector<pair<RedBlackNode<KeyT, ValueT> *, int>> stack;
+    stack.push_back({root, 1});
+    //---------------------------------------------------------------------------
+    // The number of black nodes on a path.
+    int black_depth = 0;
+    //---------------------------------------------------------------------------
+    while (stack.size() > 0) {
+      auto top = stack.back();
+      auto cur = top.first;
+      int cur_black_depth = top.second;
+      stack.pop_back();
+      if (cur == nullptr) {
+        // Rule 4.
+        if (black_depth == 0)
+          black_depth = cur_black_depth;
+        if (cur_black_depth != black_depth)
+          return false;
+        continue;
+      }
+      if (cur->color != Color::RED && cur->color != Color::BLACK)
+        return false; // Rule 1.
+      if (cur->color == Color::RED &&
+          ((cur->children[0] && cur->children[0]->color == Color::RED) ||
+           (cur->children[1] && cur->children[1]->color == Color::RED))) {
+        return false; // Rule 3.
+      }
+      auto new_black_depth =
+          cur_black_depth + (cur->color == Color::BLACK ? 1 : 0);
+      stack.push_back({cur->children[0], new_black_depth});
+      stack.push_back({cur->children[1], new_black_depth});
+    }
+    //---------------------------------------------------------------------------
+    return true;
+  }
 
 private:
   RedBlackNode<KeyT, ValueT> *findParent(KeyT key, bool &left) const {
