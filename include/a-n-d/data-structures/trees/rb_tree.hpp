@@ -185,7 +185,6 @@ private:
       //---------------------------------------------------------------------------
       assert(cur->parent->parent != nullptr);
       auto grandparent = parent->parent;
-      assert(grandparent->color == Color::BLACK);
       if (parent->color == Color::RED) {
         auto dir = static_cast<uint8_t>(getDir(parent));
         auto aunt = grandparent->children[1 - dir];
@@ -197,6 +196,8 @@ private:
           if (cur == parent->children[1 - dir]) { // Case 5
             // Rotate
             parent->children[1 - dir] = cur->children[dir];
+            if (parent->children[1 - dir])
+              parent->children[1 - dir]->parent = parent;
             cur->children[dir] = parent;
             cur->parent = grandparent;
             parent->parent = cur;
@@ -209,6 +210,8 @@ private:
           // Case 6
           // Rotate
           grandparent->children[dir] = parent->children[1 - dir];
+          if (grandparent->children[dir])
+            grandparent->children[dir]->parent = grandparent;
           parent->children[1 - dir] = grandparent;
           parent->parent = grandparent->parent;
           if (parent->parent != nullptr) {
