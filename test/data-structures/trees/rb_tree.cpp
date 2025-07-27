@@ -92,3 +92,29 @@ TEST(RBTree, DuplicateInsert10) {
     ASSERT_EQ(found->value, key * 42);
   }
 }
+//---------------------------------------------------------------------------
+TEST(RBTree, RandomInsertBig) {
+  const u32 cinsert = 1ull << 12;
+  const u32 seed = 12345;
+  //---------------------------------------------------------------------------
+  auto buffer = make_unique<byte[]>(1ull << 20);
+  RedBlackTree<u32, u32> rb(span<byte>(buffer.get(), 1ull << 20));
+  //---------------------------------------------------------------------------
+  std::vector<u32> keys(cinsert);
+  std::iota(keys.begin(), keys.end(), 0);
+  std::mt19937 rng(seed);
+  std::shuffle(keys.begin(), keys.end(), rng);
+  //---------------------------------------------------------------------------
+  for (u32 i = 0; i < cinsert; ++i) {
+    u32 key = keys[i];
+    auto node = rb.insert(key, key * 42);
+    ASSERT_NE(node, nullptr);
+    ASSERT_TRUE(rb.validate());
+  }
+  for (u32 i = 0; i < cinsert; ++i) {
+    u32 key = keys[i];
+    auto found = rb.lookup(key);
+    ASSERT_NE(found, nullptr);
+    ASSERT_EQ(found->value, key * 42);
+  }
+}
