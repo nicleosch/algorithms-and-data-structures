@@ -111,15 +111,26 @@ public:
         // Rule 4.
         if (black_depth == 0)
           black_depth = cur_black_depth;
-        if (cur_black_depth != black_depth)
+        if (cur_black_depth != black_depth) {
+          std::cout << "Black depth is different: " << black_depth << " vs. "
+                    << cur_black_depth << std::endl;
+          this->print();
           return false;
+        }
         continue;
       }
-      if (cur->color != Color::RED && cur->color != Color::BLACK)
+      if (cur->color != Color::RED && cur->color != Color::BLACK) {
+        std::cout << "Color of node with key: \"" << cur->key
+                  << "\" is neither black nor red." << std::endl;
+        this->print();
         return false; // Rule 1.
+      }
       if (cur->color == Color::RED &&
           ((cur->children[0] && cur->children[0]->color == Color::RED) ||
            (cur->children[1] && cur->children[1]->color == Color::RED))) {
+        std::cout << "Color of red node with key: \"" << cur->key
+                  << "\" has at least one red child." << std::endl;
+        this->print();
         return false; // Rule 3.
       }
       auto new_black_depth =
